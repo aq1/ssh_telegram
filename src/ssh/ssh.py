@@ -11,6 +11,12 @@ def connect(**arguments) -> SSHClient:
     return client
 
 
-def execute(client: SSHClient, command: str) -> (str, str, str):
-    _, out, err = client.exec_command(command)
-    return out.read().decode('utf8'), err.read().decode('utf8')
+def execute(client: SSHClient, path: str, command: str) -> str:
+    _, out, err = client.exec_command(f'cd {path}; {command}')
+
+    err = err.read().decode('utf8')
+    out = out.read().decode('utf8')
+    if err:
+        raise ValueError(err)
+
+    return out

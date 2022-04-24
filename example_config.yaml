@@ -1,3 +1,4 @@
+path: /home/
 servers:
   listen-together:
     hostname: 127.0.0.1
