@@ -7,7 +7,13 @@ from .handlers import handlers
 
 
 def start_bot():
-    bot = telegram.Bot(token=sys.argv[1])
+    try:
+        token = sys.argv[1]
+    except IndexError:
+        print('Не введён токен бота')
+        return
+
+    bot = telegram.Bot(token=token)
     print(f'{bot.first_name} started')
     updater = telegram.ext.Updater(
         bot=bot,
