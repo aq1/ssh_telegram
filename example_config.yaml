@@ -14,7 +14,7 @@ commands:
     arguments:
       - Первая строка
       - Вторая строка
-  # запустися /home/script.sh
+  # запустится /home/script.sh
   Скрипт в файле:
     command: ./script.sh
     arguments:
