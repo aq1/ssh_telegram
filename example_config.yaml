@@ -8,9 +8,9 @@ commands:
   ll:
     command: ls
     arguments:
-      - path
-      - list
+      - Путь
   print:
     command: echo
     arguments:
-      - string
+      - Первая строка
+      - Вторая строка

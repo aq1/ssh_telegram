@@ -1,3 +1,5 @@
+import sys
+
 import telegram
 import telegram.ext
 
@@ -5,7 +7,7 @@ from .handlers import handlers
 
 
 def start_bot():
-    bot = telegram.Bot(token='370803882:AAFM3_zeJzaAKyd0uTLVKn5kJDjNNdgttTc')
+    bot = telegram.Bot(token=sys.argv[1])
     print(f'{bot.first_name} started')
     updater = telegram.ext.Updater(
         bot=bot,

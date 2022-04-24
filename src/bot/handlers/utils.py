@@ -1,5 +1,6 @@
 from typing import Any
 
+from paramiko.channel import ChannelFile
 from telegram import Update
 from telegram.ext import CallbackContext
 
@@ -26,7 +27,7 @@ def execute_command(
         server: str,
         command: str,
         arguments: list[str],
-) -> str:
+) -> ChannelFile:
     client = ssh.connect(**conf['servers'][server])
     return ssh.execute(
         client=client,
