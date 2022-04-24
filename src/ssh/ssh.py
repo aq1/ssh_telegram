@@ -14,9 +14,9 @@ def connect(**arguments) -> SSHClient:
 def execute(client: SSHClient, path: str, command: str) -> str:
     _, out, err = client.exec_command(f'cd {path}; {command}')
 
-    err = err.read().decode('utf8')
-    out = out.read().decode('utf8')
+    err = err.read().decode('utf8').strip()
+    out = out.read().decode('utf8').strip()
     if err:
-        raise ValueError(err)
+        raise ValueError(err or 'Нет вывода об ошибке')
 
-    return out
+    return out or 'Нет вывода команды'

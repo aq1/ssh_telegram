@@ -8,9 +8,6 @@ from ...ssh import ssh
 
 @handler
 def handle_server_connect(update: Update, context: CallbackContext):
-    query = update.callback_query
-    query.answer()
-
     conf = config.read_config()
     server_name = context.match.groups()[0]
     server = conf['servers'][server_name]
