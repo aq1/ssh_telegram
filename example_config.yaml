@@ -1,0 +1,15 @@
+servers:
+  listen-together:
+    host: 127.0.0.1
+    port: 22
+    username: root
+commands:
+  ll:
+    command: ls
+    arguments:
+      - path
+      - list
+  print:
+    command: echo
+    arguments:
+      - string
