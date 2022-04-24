@@ -2,6 +2,9 @@ from paramiko.client import AutoAddPolicy, SSHClient
 
 
 def connect(**arguments) -> SSHClient:
+    if 'password' in arguments:
+        arguments['password'] = str(arguments['password'])
+
     client = SSHClient()
     client.set_missing_host_key_policy(AutoAddPolicy())
     client.connect(**arguments)

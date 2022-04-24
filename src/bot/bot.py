@@ -1,4 +1,5 @@
 import io
+from typing import Any
 
 import telegram
 from telegram import (
@@ -9,32 +10,83 @@ from telegram.ext import (
     Filters,
 )
 
-from ..config import read_config, write_config
+from .. import config, ssh
 
 
-def get_config(update: Update) -> dict:
-    error, config = read_config()
+def handler(func):
+    def _f(update: Update, context: CallbackContext) -> Any:
+        try:
+            return func(update, context)
+        except Exception as e:
+            update.effective_message.reply_text(
+                f'Не удалось выполнить команду\n{e}'
+            )
+
+    return _f
+
+
+def get_config() -> dict:
+    error, conf = config.read_config()
     if error:
-        update.effective_message.reply_text(
-            f'Не удалось прочитать конфиг\n{error}'
-        )
-    return config
+        raise ValueError(error)
+    return conf
 
 
-def handle_server_connect(update: Update, _: CallbackContext):
+@handler
+def handle_server_connect(update: Update, context: CallbackContext):
     query = update.callback_query
     query.answer()
 
+    conf = get_config()
+    server_name = context.match.groups()[0]
+    server = conf['servers'][server_name]
+
+    ssh.connect(**server)
+    context.user_data['server_name'] = server_name
+
+    keyboard = [
+        [InlineKeyboardButton(name, callback_data=f'command_{name}')]
+        for name, _ in conf['commands'].items()
+    ]
+
     update.effective_message.reply_text(
-        text=f'{query.data}: подключён',
+        text=f'{server_name}: подключён',
+        reply_markup=InlineKeyboardMarkup(keyboard),
     )
 
 
-def handle_servers_response(update: Update, _: CallbackContext):
-    config = get_config(update)
+@handler
+def handle_command(update: Update, context: CallbackContext):
+    query = update.callback_query
+    query.answer()
+
+    if 'server_name' not in context.user_data:
+        raise ValueError('Выберите на каком сервере выполнить команду.')
+
+    conf = get_config()
+    command_name = context.match.groups()[0]
+    command = conf['servers'][command_name]
+
+    ssh.connect(**server)
     keyboard = [
-        [InlineKeyboardButton(name, callback_data=name)]
-        for name, _ in config['servers'].items()
+        [InlineKeyboardButton(name, callback_data=f'command_{name}')]
+        for name, _ in conf['commands'].items()
+    ]
+
+    update.effective_message.reply_text(
+        text=f'{server_name}: подключён',
+        reply_markup=InlineKeyboardMarkup(keyboard),
+    )
+
+
+@handler
+def list_servers_handle(update: Update, _: CallbackContext):
+    conf = get_config()
+    if not conf:
+        return
+    keyboard = [
+        [InlineKeyboardButton(name, callback_data=f'server_{name}')]
+        for name, _ in conf['servers'].items()
     ]
     update.effective_message.reply_text(
         'Доступные сервера:',
@@ -42,7 +94,8 @@ def handle_servers_response(update: Update, _: CallbackContext):
     )
 
 
-def handle_config_upload(update: Update, context: CallbackContext):
+@handler
+def handle_config_upload(update: Update, _: CallbackContext):
     if 'yaml' not in update.effective_message.effective_attachment.mime_type:
         return update.message.reply_html(
             'Неизвестный формат файла. Поддерживается только yaml',
@@ -50,19 +103,21 @@ def handle_config_upload(update: Update, context: CallbackContext):
 
     buffer = io.BytesIO()
     update.effective_message.effective_attachment.get_file().download(out=buffer)
-    write_config(buffer)
+    config.write_config(buffer)
 
-    get_config(update)
+    get_config()
     update.effective_message.reply_text(text='Конфиг обновлен')
+    list_servers_handle(update, _)
 
 
 handlers = [
     telegram.ext.CallbackQueryHandler(
         handle_server_connect,
+        pattern=r'server_(.+)',
     ),
     telegram.ext.CommandHandler(
         'start',
-        handle_servers_response,
+        list_servers_handle,
     ),
     telegram.ext.MessageHandler(
         filters=Filters.attachment,
