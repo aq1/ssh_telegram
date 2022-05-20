@@ -15,6 +15,8 @@ def read_config() -> dict:
     if 'servers' not in config or 'commands' not in config:
         raise ValueError('Обязательны поля servers и commands')
 
+    config['servers']['local'] = {}
+
     return config
 
 

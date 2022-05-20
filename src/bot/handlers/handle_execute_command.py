@@ -15,7 +15,7 @@ def handle_execute_command(update: Update, context: CallbackContext):
     conf: dict = config.read_config()
     command_config: dict = conf['commands'][command]
 
-    result: ChannelFile = execute_command(
+    result = execute_command(
         conf=conf,
         server=server,
         command=command_config['command'],

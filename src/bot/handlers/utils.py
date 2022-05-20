@@ -5,6 +5,7 @@ from telegram import Update
 from telegram.ext import CallbackContext
 
 from ... import ssh
+from ...ssh import local
 
 
 def handler(func):
@@ -27,7 +28,13 @@ def execute_command(
         server: str,
         command: str,
         arguments: list[str],
-) -> ChannelFile:
+):
+    if server == 'local':
+        return local.execute(
+            path=conf['path'],
+            command=[command] + arguments,
+        )
+
     client = ssh.connect(**conf['servers'][server])
     return ssh.execute(
         client=client,

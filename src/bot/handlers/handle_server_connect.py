@@ -12,7 +12,8 @@ def handle_server_connect(update: Update, context: CallbackContext):
     server_name = context.match.groups()[0]
     server = conf['servers'][server_name]
 
-    ssh.connect(**server)
+    if not server_name == 'local':
+        ssh.connect(**server)
     context.user_data['server'] = server_name
 
     keyboard = [
